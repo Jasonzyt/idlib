@@ -1,4 +1,16 @@
+add_requires("gtest")
+
 target("idlib")
     set_kind("static")
+    set_languages("c++20")
     add_files("src/**.cpp")
+    add_headerfiles("src/**.h")
+    add_includedirs("src")
+
+target("idlib_test")
+    set_kind("binary")
+    set_languages("c++20")
+    add_files("test/**.cpp")
+    add_deps("idlib")
+    add_packages("gtest")
     add_includedirs("src")
