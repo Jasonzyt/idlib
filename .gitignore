@@ -1,0 +1,8 @@
+/.vscode/
+/.idea/
+/.xmake/
+/cmake-*
+/build/
+*.exe
+*.obj
+CMakeLists.txt
