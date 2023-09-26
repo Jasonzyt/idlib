@@ -11,3 +11,4 @@
 - [X] Mod11-2 Test
 - [ ] Validator Test
 - [ ] Exhaustor Test
+- [ ] 被弃用的行政区划代码自动判断出生日期是否符合要求，如 https://www.mca.gov.cn/mzsj/xzqh/2021/20211201.html （咕）
