@@ -63,5 +63,14 @@ class exhaustor {
      */
     std::vector<char> exhaust_sequence_code();
 
+    /**
+     * @brief Exhaust all possible ids.
+     *
+     * @return std::vector<std::string> The possible ids.
+     */
+    std::vector<std::string> exhaust_all(
+        std::chrono::year_month_day start = {std::chrono::year(1920), std::chrono::month(1), std::chrono::day(1)},
+        std::chrono::year_month_day end = std::chrono::year_month_day{std::chrono::local_days(
+            std::chrono::duration_cast<std::chrono::days>(std::chrono::system_clock::now().time_since_epoch()))});
 };
 } // namespace idlib

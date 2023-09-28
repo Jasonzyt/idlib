@@ -1,5 +1,6 @@
 #include "exhaustor.h"
 #include "details.h"
+#include "mod11-2.h"
 #include "region-codes.h"
 
 #include <stdexcept>
@@ -289,6 +290,32 @@ std::vector<year_month_day> exhaust_year_month_days(year_month_day start, year_m
     return result;
 }
 
+std::vector<std::string> combine_vector(const std::vector<std::string> &v1, const std::vector<std::string> &v2) {
+    std::vector<std::string> result;
+    for (auto &s1 : v1) {
+        for (auto &s2 : v2) {
+            result.emplace_back(s1 + s2);
+        }
+    }
+    return result;
+}
+
+std::vector<std::string> combine_vector(const std::vector<std::string> &v1, const std::vector<char> &v2) {
+    std::vector<std::string> result;
+    for (auto &s1 : v1) {
+        for (auto &s2 : v2) {
+            result.emplace_back(s1 + s2);
+        }
+    }
+    return result;
+}
+
+template <typename ... Args>
+std::vector<std::string> combine_vector(const std::vector<std::string> &v1, const std::vector<std::string> &v2,
+                                        const Args &... args) {
+    return combine_vector(combine_vector(v1, v2), args...);
+}
+
 } // namespace
 
 exhaustor::exhaustor(const std::string &id) {
@@ -328,7 +355,18 @@ std::vector<std::string> exhaustor::exhaust_region_code() {
 }
 
 std::vector<std::string> exhaustor::exhaust_date_of_birth(std::chrono::year_month_day start,
-                                                          std::chrono::year_month_day end) {}
+                                                          std::chrono::year_month_day end) {
+    if (start > end) {
+        throw std::invalid_argument("The start date must be earlier than the end date.");
+    }
+    auto tmpl = id_.substr(detail::kDateOfBirthStart, detail::kDateOfBirthLength);
+    std::vector<std::string> result;
+    auto ymds = exhaust_year_month_days(start, end, tmpl);
+    for (auto &ymd : ymds) {
+        result.emplace_back(detail::ymd2str(ymd));
+    }
+    return result;
+}
 
 std::vector<std::string> exhaustor::exhaust_registry_code() {
     std::vector<std::string> result;
@@ -357,6 +395,7 @@ std::vector<std::string> exhaustor::exhaust_registry_code() {
     } else {
         result.emplace_back(registry_code);
     }
+    return result;
 }
 
 std::vector<char> exhaustor::exhaust_sequence_code() {
@@ -373,6 +412,29 @@ std::vector<char> exhaustor::exhaust_sequence_code() {
     default:
         return {seq};
     }
+}
+
+std::vector<std::string> exhaustor::exhaust_all(std::chrono::year_month_day start, std::chrono::year_month_day end) {
+    auto region_codes = exhaust_region_code();
+    auto date_of_births = exhaust_date_of_birth(start, end);
+    auto registry_codes = exhaust_registry_code();
+    auto sequence_codes = exhaust_sequence_code();
+    std::vector<std::string> result;
+    char check_code = id_[detail::kCheckCodeIndex];
+    if (check_code == '*') {
+        result = combine_vector(region_codes, date_of_births, registry_codes, sequence_codes);
+        for (auto &id : result) {
+            id += mod11_2::do_mod11_2(id);
+        }
+    } else {
+        auto combined = combine_vector(region_codes, date_of_births, registry_codes, sequence_codes);
+        for (auto &id : combined) {
+            if (mod11_2::do_mod11_2(id) == check_code) {
+                result.emplace_back(id + check_code);
+            }
+        }
+    }
+    return result;
 }
 
 } // namespace idlib
