@@ -55,15 +55,16 @@ bool match_year_template(year yr, const std::string &tmpl) {
         throw std::invalid_argument("The length of the template must be 4.");
     }
     auto num = (int)yr;
-    for (int64_t i = 3; i >= 0; ++i) {
+    for (int64_t i = 3; i >= 0; --i) {
         if (tmpl[i] == '*') {
             num /= 10;
             continue;
         }
         auto digit = tmpl[i] - '0';
-        if (num % 10 != digit) {
+        if ((num % 10) != digit) {
             return false;
         }
+        num /= 10;
     }
     return true;
 }
@@ -129,7 +130,7 @@ std::vector<month> exhaust_months(month start, month end, const std::string &tmp
         if (m > 2) {
             // tmpl[0] = '0'
             if (start < month{m} && end > month{m}) {
-                return { month{m} };
+                return {month{m}};
             }
             return {};
         } else {
@@ -165,7 +166,7 @@ std::vector<month> exhaust_months(month start, month end, const std::string &tmp
             return {};
         }
         if (start < month{m} && end > month{m}) {
-            return { month{m} };
+            return {month{m}};
         }
         return {};
     }
@@ -199,6 +200,90 @@ std::vector<year_month> exhaust_year_months(year_month start, year_month end, co
         auto months = exhaust_months(start_month, end_month, month_tmpl);
         for (auto m : months) {
             result.emplace_back(y, m);
+        }
+    }
+    return result;
+}
+
+std::vector<day> range_days(day start, day end) {
+    if (start > end) {
+        throw std::invalid_argument("The start day must be earlier than the end day.");
+    }
+    std::vector<day> result;
+    for (auto d = start; d <= end; d += days{1}) {
+        result.push_back(d);
+    }
+    return result;
+}
+
+std::vector<day> exhaust_days(day start, day end, const std::string &tmpl) {
+    if (tmpl.size() != 2) {
+        throw std::invalid_argument("The length of the template must be 2.");
+    }
+    if (tmpl == "**") {
+        return range_days(start, end);
+    }
+    if (tmpl[0] == '*') {
+        std::vector<day> result;
+        uint32_t d = tmpl[1] - '0';
+        for (int i = 0; i <= 3; i++) {
+            uint32_t num = d + i * 10;
+            if (start <= day{num} && end >= day{num}) {
+                result.emplace_back(num);
+            }
+        }
+        return result;
+    } else if (tmpl[1] == '*') {
+        switch (tmpl[0] - '0') {
+        case 0:
+            if (start < day{10}) {
+                return range_days(start, end >= day(10) ? day(9) : end);
+            }
+            return {};
+        case 1:
+            if (start < day{20} && end > day{10}) {
+                return range_days(start < day{10} ? day{10} : start, end >= day{20} ? day{19} : end);
+            }
+            return {};
+        case 2:
+            if (start < day{30} && end > day{20}) {
+                return range_days(start < day{20} ? day{20} : start, end >= day{30} ? day{29} : end);
+            }
+            return {};
+        case 3:
+            if (start < day{31} && end >= day{30}) {
+                return range_days(start < day{30} ? day{30} : start, end);
+            }
+            return {};
+        default:
+            return {};
+        }
+    } else {
+        uint32_t d = (tmpl[0] - '0') * 10 + (tmpl[1] - '0');
+        if (start <= day{d} && end >= day{d}) {
+            return {day{d}};
+        }
+        return {};
+    }
+}
+
+std::vector<year_month_day> exhaust_year_month_days(year_month_day start, year_month_day end, const std::string &tmpl) {
+    if (tmpl.size() != 8) {
+        throw std::invalid_argument("The length of the template must be 8.");
+    }
+    auto year_tmpl = tmpl.substr(0, 4);
+    auto month_tmpl = tmpl.substr(4, 2);
+    auto day_tmpl = tmpl.substr(6, 2);
+    auto start_ym = year_month{start.year(), start.month()};
+    auto end_ym = year_month{end.year(), end.month()};
+    auto year_months = exhaust_year_months(start_ym, end_ym, year_tmpl + month_tmpl);
+    std::vector<year_month_day> result;
+    for (auto &ym : year_months) {
+        auto start_day = ym == start_ym ? start.day() : std::chrono::day{1};
+        auto end_day = ym == end_ym ? end.day() : year_month_day_last(ym.year(), month_day_last(ym.month())).day();
+        auto days = exhaust_days(start_day, end_day, day_tmpl);
+        for (auto d : days) {
+            result.emplace_back(ym.year(), ym.month(), d);
         }
     }
     return result;
