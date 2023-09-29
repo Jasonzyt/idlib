@@ -11,7 +11,7 @@
 ## To-Do
 - [X] Generator
 - [X] Validator
-- [ ] Exhaustor
+- [X] Exhaustor
 - [X] Mod11-2 Test
 - [ ] Validator Test
 - [ ] Exhaustor Test
