@@ -1,4 +1,6 @@
 # idlib - ID Library for PRC ID
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJasonzyt%2Fidlib.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FJasonzyt%2Fidlib?ref=badge_shield)
+
 
 ## 免责声明
 
@@ -16,3 +18,7 @@
 - [ ] Validator Test
 - [ ] Exhaustor Test
 - [ ] 被弃用的行政区划代码自动判断出生日期是否符合要求，如 https://www.mca.gov.cn/mzsj/xzqh/2021/20211201.html （咕）
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FJasonzyt%2Fidlib.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FJasonzyt%2Fidlib?ref=badge_large)
